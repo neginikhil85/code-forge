@@ -25,6 +25,21 @@ workflows/  Command definitions emitted per IDE
 installer/  CLI that emits rules/workflows into target projects
 ```
 
+## Getting started
+
+```
+cd installer
+npm install && npm run build
+node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>
+```
+
+Then complete the printed quality-gate setup (ArchUnit test + Checkstyle plugin) once per service. See `docs/getting-started.md` for details.
+
 ## Status
 
-Phase 1 in progress: core content and personas. Installer and java-spring pack follow.
+v0.1.0 — usable end to end: core content, personas, java-spring pack, quality-gate templates, workflows, and a working Antigravity installer.
+
+Roadmap:
+- Dogfood tuning against real Spring Boot services
+- Additional IDE emitters (Cursor, Claude Code, Copilot)
+- typescript-react stack pack
