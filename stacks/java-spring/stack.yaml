@@ -1,0 +1,21 @@
+id: java-spring
+name: Java Spring Boot
+file_globs:
+  - "**/*.java"
+  - "**/pom.xml"
+  - "**/application*.yml"
+rule_activation: glob
+quality_gates:
+  compile: "mvn -q compile"
+  architecture: "mvn -q test -Dtest=ArchitectureTest"
+  style: "mvn -q checkstyle:check"
+  full: "mvn -q verify"
+packages:
+  root: "com.<organization>.<service>"
+  structure_doc: package-structure.md
+conventions_docs:
+  - conventions.md
+  - libraries.md
+  - data-access.md
+  - communication.md
+  - testing.md

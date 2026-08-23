@@ -1,0 +1,36 @@
+<!-- Maven snippets: paste into the target service's pom.xml to activate the quality gates.
+     The installer prints these instructions; it never edits pom.xml automatically. -->
+
+<!-- 1. ArchUnit — add as test dependency; place archunit-rules.java under src/test/java. -->
+<dependency>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit-junit5</artifactId>
+    <version>1.3.0</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- 2. Checkstyle — fails the build on violations. -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-checkstyle-plugin</artifactId>
+    <version>3.6.0</version>
+    <configuration>
+        <configLocation>checkstyle.xml</configLocation>
+        <consoleOutput>true</consoleOutput>
+        <failsOnError>true</failsOnError>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>check</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
+<!-- Gate commands used by the implementer self-review loop:
+     compile:      mvn -q compile
+     architecture: mvn -q test -Dtest=ArchitectureTest
+     style:        mvn -q checkstyle:check
+     full:         mvn -q verify
+-->
