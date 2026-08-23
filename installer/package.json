@@ -1,0 +1,20 @@
+{
+  "name": "code-forge",
+  "version": "0.1.0",
+  "description": "Installs code-forge conventions, personas, and workflows into IDE agent projects.",
+  "bin": {
+    "code-forge": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/cli.ts"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
