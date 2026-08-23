@@ -1,7 +1,8 @@
 # code-forge
 
-A context-engineering framework that drives IDE chat agents (Antigravity, Cursor, Claude Code, Copilot) to produce clean, maintainable, loosely coupled code — every cycle, without the developer memorizing rules.
+A context-engineering framework that drives IDE chat agents to produce clean, maintainable, loosely coupled code — every cycle, without the developer memorizing rules.
 
+Supported IDEs: **Antigravity**, **Cursor** (Claude Code and Copilot planned).
 ## How it works
 
 Three user-facing commands, one mental model:
@@ -30,7 +31,7 @@ installer/  CLI that emits rules/workflows into target projects
 ```
 cd installer
 npm install && npm run build
-node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>
+node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>   # or --ide cursor
 ```
 
 Then complete the printed quality-gate setup (ArchUnit test + Checkstyle plugin) once per service. See `docs/getting-started.md` for details.
@@ -41,5 +42,5 @@ v0.1.0 — usable end to end: core content, personas, java-spring pack, quality-
 
 Roadmap:
 - Dogfood tuning against real Spring Boot services
-- Additional IDE emitters (Cursor, Claude Code, Copilot)
+- Additional IDE emitters (Claude Code, Copilot)
 - typescript-react stack pack

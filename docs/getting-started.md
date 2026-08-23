@@ -7,16 +7,17 @@ From this repository:
 ```
 cd installer
 npm install && npm run build
-node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>
+node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>   # or --ide cursor
 ```
 
-What lands in your service:
+What lands in your service depends on the IDE:
 
-| Location | Purpose |
-|---|---|
-| `.agents/code-forge/` | Bundled knowledge base: core principles, patterns, personas, stack conventions |
-| `.agents/rules/` | Agent rules — principles `always_on`, java-spring conventions glob-scoped to Java files |
-| `.agents/workflows/` | Slash commands: `/plan`, `/implement`, `/review`, `/build` |
+| IDE | Knowledge base | Rules | Slash commands |
+|---|---|---|---|
+| Antigravity | `.agents/code-forge/` | `.agents/rules/` — principles `always_on`, java-spring glob-scoped | `.agents/workflows/` |
+| Cursor | `.cursor/code-forge/` | `.cursor/rules/*.mdc` — principles `alwaysApply`, java-spring globs | `.cursor/commands/` |
+
+Both install the same four commands: `/plan`, `/implement`, `/review`, `/build`.
 
 Then complete the printed quality-gate setup once (ArchUnit test + Checkstyle plugin).
 

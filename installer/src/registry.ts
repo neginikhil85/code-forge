@@ -1,4 +1,6 @@
 import * as path from "node:path";
+import * as antigravityEmitter from "./emitters/antigravity";
+import * as cursorEmitter from "./emitters/cursor";
 
 export interface StackDefinition {
   id: string;
@@ -8,7 +10,7 @@ export interface StackDefinition {
 
 export interface IdeEmitter {
   id: string;
-  emit: (repositoryRoot: string, targetProjectRoot: string, stacks: StackDefinition[]) => Promise<void>;
+  emit: (targetProjectRoot: string, stacks: StackDefinition[]) => Promise<void>;
 }
 
 const REPOSITORY_ROOT = path.resolve(__dirname, "..", "..");
@@ -24,6 +26,19 @@ export const availableStacks: Record<string, StackDefinition> = {
     ruleGlobs: ["**/*.java", "**/pom.xml", "**/application*.yml"],
   },
 };
+
+export const availableIdes: Record<string, IdeEmitter> = {
+  antigravity: { id: "antigravity", emit: antigravityEmitter.emit },
+  cursor: { id: "cursor", emit: cursorEmitter.emit },
+};
+
+export function resolveIde(ideId: string): IdeEmitter {
+  const emitter = availableIdes[ideId];
+  if (!emitter) {
+    throw new Error(`Unsupported IDE "${ideId}". Available: ${Object.keys(availableIdes).join(", ")}`);
+  }
+  return emitter;
+}
 
 export function resolveStacks(stackIds: string[]): StackDefinition[] {
   const unknown = stackIds.filter((id) => !(id in availableStacks));
