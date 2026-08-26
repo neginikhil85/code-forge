@@ -1,0 +1,10 @@
+# The installer asserts that generated rule files start with `---` at byte 0 and that
+# content round-trips byte-for-byte. A Windows checkout with core.autocrlf=true rewrites
+# every LF to CRLF, which changes those bytes and fails CI for a reason that has nothing
+# to do with the code under test.
+* text=auto eol=lf
+
+# Binary-ish content that must never be line-ending normalized.
+*.png binary
+*.jpg binary
+*.ico binary

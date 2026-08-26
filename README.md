@@ -23,24 +23,34 @@ core/       Language-agnostic principles, patterns, and the shared review checkl
 personas/   Architect, Implementer, Clean-Code-Reviewer role definitions
 stacks/     Per-language convention packs (java-spring first)
 workflows/  Command definitions emitted per IDE
-installer/  CLI that emits rules/workflows into target projects
+installer/  CLI that emits rules/workflows into target projects, plus its test suite
 ```
 
 ## Getting started
 
 ```
 cd installer
-npm install && npm run build
+npm install && npm test
 node dist/cli.js init --ide antigravity --stack java-spring --dir <path-to-your-service>   # or --ide cursor
 ```
 
-Then complete the printed quality-gate setup (ArchUnit test + Checkstyle plugin) once per service. See `docs/getting-started.md` for details.
+Then complete the printed quality-gate setup (ArchUnit test + Checkstyle plugin) once per service. See `docs/getting-started.md` for details, including the managed-file contract that governs what `update` will and will not overwrite.
 
 ## Status
 
-v0.1.0 — usable end to end: core content, personas, java-spring pack, quality-gate templates, workflows, and a working Antigravity installer.
+v0.1.0 — the installer is covered by tests that assert the emitted rules activate, the
+quality-gate templates are delivered, every bundled reference resolves, workflows dynamically
+template active stack conventions, and files you have adopted survive an `update`.
+
+The package is configured for distribution (`npm pack` / `npx code-forge init`).
+
+What has **not** been validated yet: the Checkstyle config has not been run through a real
+`mvn checkstyle:check`, the ArchUnit template has not been compiled against a real service,
+and nothing here has been dogfooded on production code. Treat the content as considered and
+the enforcement as unproven.
 
 Roadmap:
+- Run the quality gates against a real Spring Boot service and fix what they reject
 - Dogfood tuning against real Spring Boot services
 - Additional IDE emitters (Claude Code, Copilot)
 - typescript-react stack pack

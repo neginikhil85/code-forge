@@ -1,7 +1,9 @@
 <!-- Maven snippets: paste into the target service's pom.xml to activate the quality gates.
-     The installer prints these instructions; it never edits pom.xml automatically. -->
+     The installer prints these instructions; it never edits pom.xml automatically.
+     Versions are pinned deliberately — an unpinned gate is a gate that changes under you. -->
 
-<!-- 1. ArchUnit — add as test dependency; place archunit-rules.java under src/test/java. -->
+<!-- 1. ArchUnit — goes in <project><dependencies>.
+        Place archunit-rules.java under src/test/java as ArchitectureTest.java. -->
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit5</artifactId>
@@ -9,18 +11,38 @@
     <scope>test</scope>
 </dependency>
 
-<!-- 2. Checkstyle — fails the build on violations. -->
+<!-- 2. Checkstyle — goes in <project><build><plugins>.
+        Copy checkstyle.xml to the project root next to pom.xml.
+
+        The <dependencies> block pins the Checkstyle engine itself. Without it you get
+        whatever the plugin bundles, which is older than the modules this config uses.
+
+        violationSeverity=error + failOnViolation=true is what makes `mvn verify` fail;
+        failsOnError alone only covers Checkstyle's own processing errors. -->
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-checkstyle-plugin</artifactId>
     <version>3.6.0</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>10.21.0</version>
+        </dependency>
+    </dependencies>
     <configuration>
         <configLocation>checkstyle.xml</configLocation>
         <consoleOutput>true</consoleOutput>
         <failsOnError>true</failsOnError>
+        <failOnViolation>true</failOnViolation>
+        <violationSeverity>error</violationSeverity>
+        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        <linkXRef>false</linkXRef>
     </configuration>
     <executions>
         <execution>
+            <id>checkstyle-check</id>
+            <phase>verify</phase>
             <goals>
                 <goal>check</goal>
             </goals>
@@ -33,4 +55,7 @@
      architecture: mvn -q test -Dtest=ArchitectureTest
      style:        mvn -q checkstyle:check
      full:         mvn -q verify
+
+     First run after wiring these up: expect real violations. Fix them or add narrow
+     suppressions to checkstyle-suppressions.xml — do not lower the thresholds.
 -->

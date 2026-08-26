@@ -50,4 +50,4 @@ Test sources mirror this structure exactly under `src/test/java`.
 
 ## Dependency direction
 
-`controller → service → repository`, with `mapper`, `validator`, `clients`, `kafka`, `events`, `model`, `constants` as supporting packages reachable per the rules above. Enforced mechanically by ArchUnit (see `quality-gates/`).
+`controller → service → repository`, with `mapper`, `validator`, `clients`, `kafka`, `events`, `model`, `constants` as supporting packages reachable per the rules above. Enforced mechanically by ArchUnit (see `stacks/java-spring/quality-gates/`).

@@ -6,11 +6,11 @@
 |---|---|
 | Calling external services (imperative stack) | `RestClient` or OpenFeign typed clients |
 | Reactive project | `WebClient` |
-| Banned everywhere | `RestTemplate` (deprecated) — ArchUnit fails the build on it |
+| Banned everywhere | `RestTemplate` (maintenance mode) — ArchUnit fails the build on it |
 
 Rules:
 - One typed client per external service, living in `clients/` (`PaymentGatewayClient`, `NotificationServiceClient`). No ad-hoc URL strings inside business code.
-- Feign clients declare their name/path configuration in yml; base URLs follow the configuration decision tree in `conventions.md`.
+- Feign clients declare their name/path configuration in yml; base URLs follow the configuration decision tree in `stacks/java-spring/conventions.md`.
 - Timeouts and retry policy are explicit per client — defaults from the gateway properties model, never implicit.
 - Response mapping happens through mappers; raw provider payloads stay inside the owning client's package.
 

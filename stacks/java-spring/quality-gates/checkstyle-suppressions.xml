@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<!--
+  Copy this to the root of your service alongside checkstyle.xml. It exists because
+  checkstyle.xml runs with includeTestSourceDirectory=true — catching bad names in tests
+  is worth more than the handful of exemptions below.
+
+  Add narrow entries here when the gate is wrong. Do not relax the thresholds in
+  checkstyle.xml: a suppression is reviewable and scoped, a lowered threshold is neither.
+-->
+<suppressions>
+    <!-- ArchUnit requires `static final ArchRule` fields and reads their camelCase names
+         as the rule description in failure output. Renaming them to SCREAMING_CASE would
+         make every violation message unreadable. -->
+    <suppress checks="ConstantName" files="[\\/]ArchitectureTest\.java$"/>
+
+    <!-- Literals in assertions and fixtures are the point of the test, not magic numbers.
+         Long @ParameterizedTest bodies and setup blocks are likewise expected. -->
+    <suppress checks="MagicNumber|MethodLength" files="[\\/]src[\\/]test[\\/]"/>
+
+    <!-- Generated sources, if any land inside the module. -->
+    <suppress checks="[a-zA-Z0-9]*" files="[\\/]target[\\/]"/>
+</suppressions>

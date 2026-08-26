@@ -5,14 +5,23 @@
   "bin": {
     "code-forge": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "content"
+  ],
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/cli.ts"
+    "prepack": "npm run build && node -e \"const fs=require('fs'); for(const d of ['core','personas','stacks','workflows']) fs.cpSync('../'+d, './content/'+d, {recursive:true});\"",
+    "postpack": "node -e \"const fs=require('fs'); fs.rmSync('./content', {recursive:true, force:true});\"",
+    "start": "ts-node src/cli.ts",
+    "test": "tsc && node --test dist/tests/installer.test.js dist/tests/emitters.test.js dist/tests/checkstyle.test.js"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^12.1.0",
+    "js-yaml": "^5.4.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"

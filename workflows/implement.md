@@ -7,7 +7,7 @@ When the user types `/implement [task]`, execute implementation through the rout
 ## Routing (decide before writing any code)
 
 1. **Approved plan exists** (`docs/design/<feature>.md` with `status: approved`) → implement against it as binding specification.
-2. **Trivial scope detected** (≤ 2 files touched, no new public API/endpoint, no new dependency, no new cross-service interaction) → proceed directly in light-mode following conventions only.
+2. **Trivial scope estimated** (estimated ≤ 2 files touched, no new public API/endpoint, no new dependency, no new cross-service interaction) → proceed directly in light-mode following conventions only.
 3. **Non-trivial scope, no approved plan** → ask, never refuse:
    > "This looks like a bigger requirement. Start with planning first?"
    > `[Yes — plan then implement]` `[No — proceed without plan]` `[Cancel]`
@@ -19,7 +19,7 @@ When the user types `/implement [task]`, execute implementation through the rout
 
 1. Adopt the Implementer persona from `personas/implementer.md`.
 2. Load the active stack pack: package structure, conventions, libraries, data access, testing.
-3. Implement per conventions; write tests alongside logic per `stacks/java-spring/testing.md`.
+3. Implement per conventions; write tests alongside logic per {{STACK_TESTING_CONVENTIONS}}.
 
 ## Self-review loop (mandatory before reporting done)
 

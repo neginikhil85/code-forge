@@ -16,7 +16,7 @@ Preferred decomposition order: extract validator → extract mapper/converter �
 ## Open/Closed
 
 New behavior arrives as a new implementation, not as new branches inside existing logic.
-- Adding a payment provider must not modify `PaymentService` — it adds a strategy and registers it (see `patterns/strategy-map-registry.md`).
+- Adding a payment provider must not modify `PaymentService` — it adds a strategy and registers it (see `core/patterns/strategy-map-registry.md`).
 - If you find yourself editing a `switch` or adding `if (type.equals(...))` branches, stop and check whether a registry applies.
 
 ## Liskov Substitution

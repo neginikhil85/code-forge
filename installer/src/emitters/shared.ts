@@ -1,28 +1,22 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { repositoryRoot, StackDefinition } from "../registry";
+import { SyncReport, withManagedNote, writeManagedFile } from "../managed";
 
-export const MANAGED_HEADER = [
-  "<!--",
-  "  managed by code-forge — edits to this file will be overwritten by `code-forge update`.",
-  "  To customize, copy this file and remove the managed marker.",
-  "-->",
-  "",
-].join("\n");
+export { MANAGED_MARKER } from "../managed";
 
-const EXCLUDED_BUNDLE_ENTRIES = new Set(["quality-gates", "maven-snippets.xml", "stack.yaml"]);
-
-export interface BundledLocations {
-  bundledRoot: string;
-  rulesDir: string;
-  workflowsDir: string;
-}
+/**
+ * `stack.yaml` is installer-side metadata, not agent-facing guidance, so it stays out
+ * of the bundle. Everything else ships — including the quality-gate templates, which
+ * the printed setup instructions tell the developer to copy.
+ */
+const EXCLUDED_BUNDLE_ENTRIES = new Set(["stack.yaml"]);
 
 export function buildPathRewrites(bundledRoot: string): Array<[RegExp, string]> {
   return [
-    [/personas\//g, `${bundledRoot}/personas/`],
+    [/(?<![\w/-])personas\//g, `${bundledRoot}/personas/`],
     [/(?<![\w/-])core\//g, `${bundledRoot}/core/`],
-    [/stacks\/([\w-]+)\//g, `${bundledRoot}/stacks/$1/`],
+    [/(?<![\w/-])stacks\/([\w-]+)\//g, `${bundledRoot}/stacks/$1/`],
   ];
 }
 
@@ -33,15 +27,25 @@ export function rewritePaths(content: string, bundledRoot: string): string {
   );
 }
 
+/**
+ * Copies the knowledge base into the target project. Content is rewritten the same way
+ * workflows are: references inside these documents are repository-root-relative at
+ * source, so without rewriting an agent following `core/patterns/...` from a bundled
+ * file looks in the wrong place.
+ */
 export async function bundleKnowledgeBase(
   targetProjectRoot: string,
   bundledRoot: string,
   stacks: StackDefinition[],
+  report: SyncReport,
 ): Promise<void> {
   const repositoryRootDir = repositoryRoot();
   const copyJobs = [
     { source: path.join(repositoryRootDir, "core"), destination: path.join(targetProjectRoot, bundledRoot, "core") },
-    { source: path.join(repositoryRootDir, "personas"), destination: path.join(targetProjectRoot, bundledRoot, "personas") },
+    {
+      source: path.join(repositoryRootDir, "personas"),
+      destination: path.join(targetProjectRoot, bundledRoot, "personas"),
+    },
     ...stacks.map((stack) => ({
       source: path.join(repositoryRootDir, "stacks", stack.id),
       destination: path.join(targetProjectRoot, bundledRoot, "stacks", stack.id),
@@ -49,36 +53,92 @@ export async function bundleKnowledgeBase(
   ];
 
   for (const job of copyJobs) {
-    await copyManagedDirectory(job.source, job.destination);
+    await syncManagedDirectory(job.source, job.destination, bundledRoot, report);
   }
 }
 
-async function copyManagedDirectory(source: string, destination: string): Promise<void> {
+async function syncManagedDirectory(
+  source: string,
+  destination: string,
+  bundledRoot: string,
+  report: SyncReport,
+): Promise<void> {
   const entries = await fs.readdir(source, { withFileTypes: true });
   await fs.mkdir(destination, { recursive: true });
+
   for (const entry of entries) {
     if (EXCLUDED_BUNDLE_ENTRIES.has(entry.name)) continue;
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
+
     if (entry.isDirectory()) {
-      await copyManagedDirectory(sourcePath, destinationPath);
-    } else {
-      await fs.copyFile(sourcePath, destinationPath);
-      await prependManagedHeader(destinationPath);
+      await syncManagedDirectory(sourcePath, destinationPath, bundledRoot, report);
+      continue;
+    }
+    const content = rewritePaths(await fs.readFile(sourcePath, "utf8"), bundledRoot);
+    await writeManagedFile(destinationPath, withManagedNote(content, destinationPath), report);
+  }
+}export function templateWorkflows(content: string, stacks: StackDefinition[], bundledRoot: string): string {
+  const planDocs: string[] = [];
+  const testDocs: string[] = [];
+
+  for (const stack of stacks) {
+    if (stack.structureDoc) {
+      planDocs.push(`   - \`${bundledRoot}/stacks/${stack.id}/${stack.structureDoc}\``);
+    }
+    for (const doc of stack.conventionsDocs ?? []) {
+      if (doc.includes("test")) {
+        testDocs.push(`\`${bundledRoot}/stacks/${stack.id}/${doc}\``);
+      } else {
+        planDocs.push(`   - \`${bundledRoot}/stacks/${stack.id}/${doc}\``);
+      }
     }
   }
+
+  const planReplacement = planDocs.length > 0
+    ? planDocs.join("\n")
+    : `   - \`${bundledRoot}/core/principles/clean-code.md\``;
+  const testReplacement = testDocs.length > 0
+    ? testDocs.join(", ")
+    : "the active stack test conventions";
+
+  return content
+    .replace(/\{\{STACK_PLAN_CONVENTIONS\}\}/g, planReplacement)
+    .replace(/\{\{STACK_TESTING_CONVENTIONS\}\}/g, testReplacement);
 }
 
-async function prependManagedHeader(filePath: string): Promise<void> {
-  const content = await fs.readFile(filePath, "utf8");
-  if (content.includes("managed by code-forge")) return;
-  await fs.writeFile(filePath, MANAGED_HEADER + content);
+export async function syncWorkflows(
+  targetProjectRoot: string,
+  workflowsDir: string,
+  bundledRoot: string,
+  stacks: StackDefinition[],
+  report: SyncReport,
+): Promise<void> {
+  const source = path.join(repositoryRoot(), "workflows");
+  const destination = path.join(targetProjectRoot, workflowsDir);
+  await fs.mkdir(destination, { recursive: true });
+
+  const workflowFiles = (await fs.readdir(source)).filter((name) => name.endsWith(".md"));
+  for (const name of workflowFiles) {
+    let content = await fs.readFile(path.join(source, name), "utf8");
+    content = templateWorkflows(content, stacks, bundledRoot);
+    content = rewritePaths(content, bundledRoot);
+    const destinationPath = path.join(destination, name);
+    await writeManagedFile(destinationPath, withManagedNote(content, destinationPath), report);
+  }
 }
 
 export interface RuleSpec {
   fileName: string;
   description: string;
   body: string;
+  /**
+   * Present on stack rules, absent on the always-on principles rule. Carried here rather
+   * than looked up by the emitters: re-deriving the stack from the file name meant a
+   * missing match produced a rule with no globs, which installs cleanly and then never
+   * activates. Making the data flow one-way removes the failure instead of guarding it.
+   */
+  globs?: string[];
 }
 
 export function coreRuleBody(bundledRoot: string): string {
@@ -101,18 +161,27 @@ export function coreRuleBody(bundledRoot: string): string {
 }
 
 export function stackRuleBody(stack: StackDefinition, bundledRoot: string): string {
-  return [
+  const lines = [
     `# code-forge ${stack.id} stack`,
     "",
     "These conventions apply to all matching files:",
     "",
-    `- \`${bundledRoot}/stacks/${stack.id}/package-structure.md\` — layered layout and placement rules`,
-    `- \`${bundledRoot}/stacks/${stack.id}/conventions.md\` — dependency injection, Lombok, configuration decision tree, mappers`,
-    `- \`${bundledRoot}/stacks/${stack.id}/libraries.md\` — HTTP clients, logging, boilerplate policy`,
-    `- \`${bundledRoot}/stacks/${stack.id}/data-access.md\` — repository vs dynamic aggregation decisions`,
-    `- \`${bundledRoot}/stacks/${stack.id}/communication.md\` — inter-service mechanism selection and reliability defaults`,
-    `- \`${bundledRoot}/stacks/${stack.id}/testing.md\` — test naming and structure`,
-  ].join("\n");
+  ];
+  if (stack.structureDoc) {
+    lines.push(`- \`${bundledRoot}/stacks/${stack.id}/${stack.structureDoc}\` — layered layout and placement rules`);
+  }
+  const descriptions: Record<string, string> = {
+    "conventions.md": "dependency injection, Lombok, configuration decision tree, mappers",
+    "libraries.md": "HTTP clients, logging, boilerplate policy",
+    "data-access.md": "repository vs dynamic aggregation decisions",
+    "communication.md": "inter-service mechanism selection and reliability defaults",
+    "testing.md": "test naming and structure",
+  };
+  for (const doc of stack.conventionsDocs ?? []) {
+    const desc = descriptions[doc] ? ` — ${descriptions[doc]}` : "";
+    lines.push(`- \`${bundledRoot}/stacks/${stack.id}/${doc}\`${desc}`);
+  }
+  return lines.join("\n");
 }
 
 export function buildRuleSpecs(stacks: StackDefinition[], bundledRoot: string): RuleSpec[] {
@@ -122,32 +191,57 @@ export function buildRuleSpecs(stacks: StackDefinition[], bundledRoot: string): 
       description: "Clean-code principles: naming without abbreviations, why-only comments, SOLID discipline.",
       body: coreRuleBody(bundledRoot),
     },
-    ...stacks.map((stack) => ({
-      fileName: `code-forge-${stack.id}`,
-      description: `${stack.id} conventions: package structure, configuration sweep, mappers, testing.`,
-      body: stackRuleBody(stack, bundledRoot),
-    })),
+    ...stacks.map((stack) => {
+      if (stack.ruleGlobs.length === 0) {
+        throw new Error(`Stack "${stack.id}" declares no ruleGlobs, so its rule would never activate.`);
+      }
+      return {
+        fileName: `code-forge-${stack.id}`,
+        description: `${stack.id} conventions: package structure, configuration sweep, mappers, testing.`,
+        body: stackRuleBody(stack, bundledRoot),
+        globs: stack.ruleGlobs,
+      };
+    }),
   ];
 }
 
-export function printQualityGateInstructions(stacks: StackDefinition[]): void {
-  if (!stacks.some((stack) => stack.id === "java-spring")) return;
-
-  console.log(`
-Quality gates for java-spring (manual setup — pom.xml is never edited automatically):
-
-1. Copy quality-gate templates into your service:
-   - archunit-rules.java -> src/test/java/<your base package>/ArchitectureTest.java
-     (adjust the analyzed package and layer definitions)
-   - checkstyle.xml      -> project root
-2. Add to pom.xml (snippets in the bundled maven-snippets.xml):
-   - dependency: com.tngtech.archunit:archunit-junit5
-   - plugin:     maven-checkstyle-plugin bound to check
-
-Gate commands used by /implement:
-   compile:      mvn -q compile
-   architecture: mvn -q test -Dtest=ArchitectureTest
-   style:        mvn -q checkstyle:check
-   full:         mvn -q verify
-`);
+/**
+ * Manual setup, returned rather than printed so the caller can show it after the file
+ * summary. pom.xml is never edited automatically: it is the one file in a service where
+ * an unexpected rewrite costs more than the automation saves.
+ */
+export function qualityGateInstructions(stacks: StackDefinition[], bundledRoot: string): string[] {
+  const notes: string[] = [];
+  for (const stack of stacks) {
+    if (!stack.qualityGates || Object.keys(stack.qualityGates).length === 0) continue;
+    const gatesDir = `${bundledRoot}/stacks/${stack.id}/quality-gates`;
+    const lines = [
+      `Quality gates for ${stack.id} — one-time setup:`,
+      "",
+    ];
+    if (stack.id === "java-spring") {
+      lines.push(
+        `1. Copy these out of the knowledge base:`,
+        `   - ${gatesDir}/archunit-rules.java`,
+        `       -> src/test/java/<your base package>/architecture/ArchitectureTest.java`,
+        `       (rename the file, then set the analyzed package and layer packages)`,
+        `   - ${gatesDir}/checkstyle.xml              -> project root`,
+        `   - ${gatesDir}/checkstyle-suppressions.xml -> project root`,
+        `2. Add to pom.xml — snippets in ${bundledRoot}/stacks/java-spring/maven-snippets.xml:`,
+        `   - dependency: com.tngtech.archunit:archunit-junit5 (test scope)`,
+        `   - plugin:     maven-checkstyle-plugin, with the Checkstyle version pinned`,
+        "",
+        `The copies at your project root are outside the knowledge base, so \`update\` will not`,
+        `touch them — delete their marker comment and treat them as yours, or re-copy after an`,
+        `update to pick up changes.`,
+        "",
+      );
+    }
+    lines.push(`Gate commands used by /implement:`);
+    for (const [gateName, gateCmd] of Object.entries(stack.qualityGates)) {
+      lines.push(`   ${(gateName + ":").padEnd(14)} ${gateCmd}`);
+    }
+    notes.push(lines.join("\n"));
+  }
+  return notes;
 }
