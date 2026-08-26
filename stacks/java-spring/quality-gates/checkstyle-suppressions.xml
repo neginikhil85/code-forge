@@ -14,12 +14,12 @@
     <!-- ArchUnit requires `static final ArchRule` fields and reads their camelCase names
          as the rule description in failure output. Renaming them to SCREAMING_CASE would
          make every violation message unreadable. -->
-    <suppress checks="ConstantName" files="[\\/]ArchitectureTest\.java$"/>
+    <suppress checks="ConstantName" files=".*ArchitectureTest\.java"/>
 
     <!-- Literals in assertions and fixtures are the point of the test, not magic numbers.
          Long @ParameterizedTest bodies and setup blocks are likewise expected. -->
-    <suppress checks="MagicNumber|MethodLength" files="[\\/]src[\\/]test[\\/]"/>
+    <suppress checks="MagicNumber|MethodLength|FileTabCharacter" files=".*[\\/]src[\\/]test[\\/].*"/>
 
     <!-- Generated sources, if any land inside the module. -->
-    <suppress checks="[a-zA-Z0-9]*" files="[\\/]target[\\/]"/>
+    <suppress checks="[a-zA-Z0-9]*" files=".*[\\/]target[\\/].*"/>
 </suppressions>

@@ -13,6 +13,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @AnalyzeClasses(packages = "com.example.orderservice", importOptions = ImportOption.DoNotIncludeTests.class)
@@ -44,8 +45,8 @@ class ArchitectureTest {
             .whereLayer(REPOSITORY).mayOnlyBeAccessedByLayers(SERVICE);
 
     @ArchTest
-    static final ArchRule noFieldInjection = noClasses()
-            .should().haveFieldsAnnotatedWith(Autowired.class)
+    static final ArchRule noFieldInjection = noFields()
+            .should().beAnnotatedWith(Autowired.class)
             .because("constructor injection keeps dependencies explicit and testable");
 
     /** RestTemplate is in maintenance mode; new call sites should use RestClient or WebClient. */

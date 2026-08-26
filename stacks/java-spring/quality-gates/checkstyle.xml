@@ -28,7 +28,7 @@
     <!-- Optional so a project without a suppression file still initializes. The
          quality-gates directory ships a starter checkstyle-suppressions.xml. -->
     <module name="SuppressionFilter">
-        <property name="file" value="checkstyle-suppressions.xml"/>
+        <property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
         <property name="optional" value="true"/>
     </module>
     <!-- Escape hatch: @SuppressWarnings("checkstyle:MethodLength") on the rare justified case. -->
