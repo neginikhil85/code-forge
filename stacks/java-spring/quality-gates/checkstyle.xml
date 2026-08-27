@@ -86,14 +86,16 @@
 
         <!-- Readability floors that mirror the clean-code structure rules. -->
         <module name="MethodLength">
-            <property name="max" value="40"/>
+            <property name="max" value="5"/>
             <property name="countEmpty" value="false"/>
         </module>
         <module name="NestedIfDepth">
-            <property name="max" value="2"/>
+            <property name="max" value="1"/>
         </module>
         <module name="LeftCurly"/>
-        <module name="NeedBraces"/>
+        <module name="NeedBraces">
+            <property name="allowSingleLineStatement" value="true"/>
+        </module>
         <module name="UnusedImports"/>
         <module name="EmptyCatchBlock">
             <property name="exceptionVariableName" value="expected|ignored"/>

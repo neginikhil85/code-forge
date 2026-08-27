@@ -43,13 +43,15 @@ public record PaymentGatewayProperties(String baseUrl, Duration timeout, int max
 - Handlers live in `exception/handler/` as `@RestControllerAdvice`; every external-facing error returns the standard error response shape defined in the API contract.
 - Never swallow exceptions silently; never catch-and-rethrow losing the cause.
 
-## Class hygiene
+## Class & package hygiene
 
 - Public API of a class stays minimal; helpers are private until proven shared.
+- Package sizing follows the **Rule of 5**: No flat layer package holds >5 files; group by domain sub-packages (`service/auth/`, `controller/kafka/`, etc.).
+- Package-private visibility (`default`) is preferred for internal helpers, mappers, and domain-internal services instead of making everything `public`.
 - `@Transactional` sits on service methods, scoped as narrow as correctness allows; repositories stay transactional-by-default without annotations unless custom semantics are needed.
 - Records for pure data carriers wherever mutability is not required.
 
 ## Single responsibility reminders specific to Spring
 
-- `@Configuration` classes configure one concern each (`config/mongo/MongoConfiguration`, `config/cache/CacheConfiguration`).
+- `@Configuration` classes configure one concern each (`config/mongo/MongoConfiguration`, `config/security/SecurityConfiguration`).
 - Scheduling, listeners, and consumers are separate beans — never bolted onto services as extra responsibilities.

@@ -16,7 +16,7 @@ This is LOW-LEVEL CODE DESIGN planning: package structure, API contracts, servic
 
 ## Design document sections (in order)
 
-1. **Package structure** — exact packages/files to create or modify, mapped onto the active stack's layered layout. New collaborators get named classes, not "a service layer".
+1. **Package structure** — exact packages/files to create or modify, mapped onto the active stack's layered layout with domain sub-packages (enforcing the Rule of 5: no flat layer folder holds >5 files). New collaborators get named classes, not "a service layer".
 2. **API contracts** — full request/response model definitions for any endpoint touched: field names, types, validation rules. Contracts are written before implementation, never reverse-engineered after.
 3. **Inter-service communication** — when the task spans services: mechanism per interaction (REST, Kafka, ActiveMQ, GraphQL, WebSocket) chosen from the stack's communication decision matrix, with a one-line why, payload contract, and failure-mode handling (what happens when the other side is down).
 4. **Configuration and constants sweep** — list every value the feature introduces and its home: application.yml (environment-varying), constants class (fixed shared), or justified inline. Two or more related properties become one `@ConfigurationProperties` bound model.

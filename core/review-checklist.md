@@ -6,7 +6,7 @@ Verdict per section: pass / violation (with file:line and fix) . A change ships 
 
 ## 1. Naming
 
-- [ ] No abbreviations anywhere: variables, methods, classes, packages.
+- [ ] No cryptic or lazy abbreviations; standard domain acronyms, units (e.g., `ms`), and framework keywords (e.g., `Desc`) are used pragmatically without bloat.
 - [ ] Class names are nouns stating responsibility; method names are verbs stating outcome.
 - [ ] Names concise but self-explanatory without reading the body.
 - [ ] Test names follow `methodName_scenario` form.
