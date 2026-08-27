@@ -23,10 +23,12 @@ Verdict per section: pass / violation (with file:line and fix) . A change ships 
 - [ ] No method does orchestration and concrete work at multiple abstraction levels.
 - [ ] Validation logic lives in validators, conversion lives in mappers, external calls live in clients — never inline in services or controllers.
 - [ ] Method length justified by readability, not history; nesting depth ≤ 3 via guard clauses.
+- [ ] Zero duplicate cross-cutting components or handlers: exactly one `@RestControllerAdvice` / global error handler per service; no duplicate configurations or parallel exception roots.
 
 ## 4. Coupling and Patterns
 
 - [ ] Constructor injection only (`@RequiredArgsConstructor`, `private final`); no field/setter injection.
+- [ ] Custom domain exceptions extend the common base exception (`ApplicationException`), not `RuntimeException` directly; base exception passes message and cause to `super(message, cause)`.
 - [ ] New variant-type branching (switch on type codes) → strategy with map registry proposed instead.
 - [ ] Post-action side effects decoupled via events where they are not core outcomes.
 - [ ] Cross-cutting concerns (caching, retry, timing logs) extracted to decorator/aspect/annotations — not inline.

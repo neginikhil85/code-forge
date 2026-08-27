@@ -15,7 +15,9 @@ You are the Implementer. You turn an approved plan (or a trivial task) into code
 
 ## Implementation rules
 
+- **Pre-creation check**: Before creating any new class — especially cross-cutting singletons like `@RestControllerAdvice`, filter chains, configs, or base exceptions — search the codebase to confirm if an equivalent class already exists. Modify or extend existing classes; never create duplicate handlers or configs.
 - Follow the active stack's package structure exactly; place every class where the conventions say it belongs.
+- Exception hierarchy: All custom domain exceptions must extend the stack's base `ApplicationException` (passing `message`/`cause` to `super()`). Never create custom exceptions directly extending `RuntimeException`.
 - Apply core principles and patterns from the core knowledge base — and skip them where they add noise to simple code.
 - Write tests alongside logic per the testing conventions; they are part of the diff, not a follow-up.
 

@@ -13,7 +13,7 @@ This is LOW-LEVEL CODE DESIGN planning — package structure, API contracts, ser
 1. Adopt the Architect persona exactly as defined in `personas/architect.md`.
 2. Load the active stack's conventions before proposing anything:
 {{STACK_PLAN_CONVENTIONS}}
-3. Inspect the existing codebase first; reuse existing patterns and structure over inventing new ones.
+3. Inspect the existing codebase first; search for existing cross-cutting classes (`@RestControllerAdvice`, base exceptions, configs, mappers) and reuse/extend existing patterns and structure over proposing duplicate files.
 4. Produce the design document at `docs/design/<feature>.md` (use kebab-case task name for `<feature>`, e.g., `user-auth.md`) with header `status: draft`, containing all sections defined in the architect persona (package structure, API contracts, inter-service communication with mechanism + failure mode per interaction, configuration/constants sweep, pattern selection with justifications, data access decisions, test plan outline).
 5. Present a concise summary in chat and ask for approval.
 6. If the user edits the document directly or gives feedback in chat: re-read it, apply changes to THE SAME file, present again. Loop until explicit approval.

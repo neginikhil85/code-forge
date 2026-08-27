@@ -19,7 +19,7 @@ When the user types `/implement [task]`, execute implementation through the rout
 
 1. Adopt the Implementer persona from `personas/implementer.md`.
 2. Load the active stack pack: package structure, conventions, libraries, data access, testing.
-3. Implement per conventions; write tests alongside logic per {{STACK_TESTING_CONVENTIONS}}.
+3. Implement per conventions; perform pre-creation checks so cross-cutting handlers (`@RestControllerAdvice`, configs, base exceptions) are not duplicated; write tests alongside logic per {{STACK_TESTING_CONVENTIONS}}.
 
 ## Self-review loop (mandatory before reporting done)
 

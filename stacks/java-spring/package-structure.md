@@ -37,9 +37,12 @@ com.example.orderservice/
 │   ├── order/                 # Order entity, CreateOrderRequest, OrderViewResponse
 │   ├── payment/               # Payment entity, ChargeRequest, PaymentResponse
 │   └── dto/                   # cross-cutting or shared transfer objects
-├── exception/                 # domain exception classes
-│   ├── handler/               # @RestControllerAdvice global error handlers
-│   └── auth/                  # InvalidCredentialsException, UnauthorizedException
+├── exception/                 # domain exception hierarchy
+│   ├── ApplicationException.java # base domain exception extending RuntimeException
+│   ├── ErrorCode.java         # domain error code enum mapped to HTTP status
+│   ├── handler/               # GlobalExceptionHandler (@RestControllerAdvice, single handler)
+│   ├── auth/                  # InvalidCredentialsException, UnauthorizedException
+│   └── order/                 # OrderNotFoundException, InvalidOrderStateException
 └── util/                      # stateless helpers with no business knowledge
 ```
 

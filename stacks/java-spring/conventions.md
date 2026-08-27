@@ -39,9 +39,35 @@ public record PaymentGatewayProperties(String baseUrl, Duration timeout, int max
 
 ## Exception design
 
-- Domain exceptions extend a common base (`DomainException`) carrying enough context for handlers to map status codes.
-- Handlers live in `exception/handler/` as `@RestControllerAdvice`; every external-facing error returns the standard error response shape defined in the API contract.
-- Never swallow exceptions silently; never catch-and-rethrow losing the cause.
+- **Single base exception hierarchy**: All custom domain exceptions extend a single common base `ApplicationException` (which extends `RuntimeException`). Never create custom exceptions that directly extend `RuntimeException`.
+- **Preserve message and cause**: `ApplicationException` must pass `message` and `cause` to `super(message, cause)` to ensure `getMessage()`, logs, and stack traces function properly.
+- **Decoupled error codes**: `ApplicationException` carries an `ErrorCode` enum (or `HttpStatus` context) that maps domain errors to HTTP statuses at the web boundary.
+- **Single `@RestControllerAdvice`**: Exactly one `@RestControllerAdvice` (e.g. `GlobalExceptionHandler` / `GlobalRestControllerAdvice`) per service in `exception/handler/`. Never create duplicate advice classes.
+- **Uniform handling**:
+  - One `@ExceptionHandler(ApplicationException.class)` handles all custom domain exceptions uniformly, mapping `ex.getErrorCode().getHttpStatus()` to the standard response envelope.
+  - Separate handler for `@Valid` validation errors (`MethodArgumentNotValidException`) extracting structured field errors.
+  - Fallback handler for `Exception.class` (HTTP 500) without leaking stack traces.
+- **No silent swallowing**: Never swallow exceptions silently; never catch-and-rethrow losing the root cause.
+
+```java
+public abstract class ApplicationException extends RuntimeException {
+    private final ErrorCode errorCode;
+
+    protected ApplicationException(String message, ErrorCode errorCode) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    protected ApplicationException(String message, Throwable cause, ErrorCode errorCode) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    public ErrorCode getErrorCode() {
+        return errorCode;
+    }
+}
+```
 
 ## Class & package hygiene
 

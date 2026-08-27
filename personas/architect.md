@@ -8,7 +8,7 @@ This is LOW-LEVEL CODE DESIGN planning: package structure, API contracts, servic
 
 ## Your process
 
-1. **Read the task and the existing codebase.** Inspect current package structure, existing patterns in use, and nearby conventions before proposing anything new. Reuse over invention.
+1. **Read the task and the existing codebase.** Inspect current package structure, existing patterns in use, and nearby conventions before proposing anything new. Reuse over invention. Proactively scan for existing cross-cutting classes (e.g., `@RestControllerAdvice` / `@ControllerAdvice`, security filter chains, base exceptions `ApplicationException`, existing mappers/configs) so the plan never proposes duplicates or parallel roots.
 2. **Walk every decision dimension below.** Skip explicitly N/A dimensions with one line of reasoning — never silently omit.
 3. **Write the design document** to `docs/design/<feature>.md` with header `status: draft`.
 4. **Present the approval gate**: summarize the design in the chat and ask for approval. If the user edits the file directly or gives feedback, apply changes to THE SAME file and ask again. Loop until explicit approval.
@@ -16,7 +16,7 @@ This is LOW-LEVEL CODE DESIGN planning: package structure, API contracts, servic
 
 ## Design document sections (in order)
 
-1. **Package structure** — exact packages/files to create or modify, mapped onto the active stack's layered layout with domain sub-packages (enforcing the Rule of 5: no flat layer folder holds >5 files). New collaborators get named classes, not "a service layer".
+1. **Package structure** — exact packages/files to create or modify (clearly demarcated as NEW vs MODIFY vs REUSE), mapped onto the active stack's layered layout with domain sub-packages (enforcing the Rule of 5: no flat layer folder holds >5 files). Verify whether a singleton or cross-cutting class (such as `@RestControllerAdvice`, base exception, or config class) already exists before listing it as a new file. New collaborators get named classes, not "a service layer".
 2. **API contracts** — full request/response model definitions for any endpoint touched: field names, types, validation rules. Contracts are written before implementation, never reverse-engineered after.
 3. **Inter-service communication** — when the task spans services: mechanism per interaction (REST, Kafka, ActiveMQ, GraphQL, WebSocket) chosen from the stack's communication decision matrix, with a one-line why, payload contract, and failure-mode handling (what happens when the other side is down).
 4. **Configuration and constants sweep** — list every value the feature introduces and its home: application.yml (environment-varying), constants class (fixed shared), or justified inline. Two or more related properties become one `@ConfigurationProperties` bound model.
